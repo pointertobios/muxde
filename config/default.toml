@@ -1,0 +1,7 @@
+[colortheme]
+background = [26, 26, 28]
+command_bar = [20, 28, 20]
+
+[command]
+new_window = "n"
+quit = "q"
