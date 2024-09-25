@@ -8,3 +8,4 @@ crossterm = "0.28.1"
 serde = { version = "1.0.210", features = ["derive", "serde_derive"] }
 tokio = { version = "1.40.0", features = ["full"] }
 toml = "0.8.19"
+unicode-width = { version = "0.2.0", features = ["std"] }

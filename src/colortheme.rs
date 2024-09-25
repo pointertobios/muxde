@@ -1,7 +1,6 @@
 use crossterm::style::Color;
 use toml::{Table, Value};
 
-
 pub struct ColorTheme {
     pub background: Color,
     pub command_bar: Color,
