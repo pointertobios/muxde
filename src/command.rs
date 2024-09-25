@@ -1,6 +1,8 @@
+use std::sync::mpsc::Sender;
+
 use crossterm::event::{self, KeyEvent, KeyModifiers};
 
-use crate::{iterate_config, Config};
+use crate::{api, innerpipe::PipeObj, iterate_config, Config};
 
 pub struct CommandProcessor {
     command_mode: bool,
@@ -8,6 +10,7 @@ pub struct CommandProcessor {
     unknown_cmd: bool,
     cmdbar_show: String,
     cmdbar_prompt: String,
+    cmdbar_suggestion: String,
 }
 
 impl CommandProcessor {
@@ -18,6 +21,7 @@ impl CommandProcessor {
             unknown_cmd: false,
             cmdbar_show: String::new(),
             cmdbar_prompt: String::from("New workspace"),
+            cmdbar_suggestion: String::new(),
         }
     }
 
@@ -29,6 +33,10 @@ impl CommandProcessor {
         &self.cmdbar_prompt
     }
 
+    pub fn get_suggestion(&self) -> &String {
+	&self.cmdbar_suggestion
+    }
+
     pub fn unknown(&self) -> bool {
         self.unknown_cmd
     }
@@ -37,24 +45,39 @@ impl CommandProcessor {
         self.command_mode
     }
 
-    pub fn process(&mut self, map: &Config) -> bool {
-        let f = |_, value| {
-            if let &toml::Value::String(ref s) = value {
-                s == &self.command
+    pub fn process(&mut self, map: &Config, sender: Sender<PipeObj>) -> bool {
+        if let Some((name, cmd, full)) = iterate_config(map, &self.command) {
+            self.cmdbar_prompt = format!("{}", name);
+            if !full {
+                let mut s = cmd.as_str().unwrap().to_string();
+                for _ in self.command.chars() {
+                    s.remove(0);
+                }
+		if self.command.is_empty() {
+		    self.cmdbar_suggestion.clear();
+		} else {
+                    self.cmdbar_suggestion = s;
+		}
             } else {
-                false
-            }
-        };
-        if let Some((name, _)) = iterate_config(map, &f) {
-            self.command.clear();
-            self.cmdbar_prompt = format!(" - {}", name);
-            self.unknown_cmd = false;
-            match name.as_str() {
-                "quit" => return true,
-                _ => (),
+		self.cmdbar_suggestion.clear();
+	    }
+	    self.unknown_cmd = false;
+	    if full {
+		self.command.clear();
+                match name.as_str() {
+                    "quit" => return true,
+                    "new-window" => {
+                        let win = api::new_window();
+                        sender.send(PipeObj::NewWindow(win)).unwrap();
+                    }
+                    "abcd" => (),
+                    "dfas" => (),
+                    _ => (),
+                }
             }
         } else if !self.cmdbar_show.is_empty() {
-            self.cmdbar_prompt = String::from(" | Unknown command");
+            self.cmdbar_prompt = String::from("Unknown command");
+	    self.cmdbar_suggestion.clear();
             self.unknown_cmd = true;
         } else {
             self.cmdbar_prompt.clear();

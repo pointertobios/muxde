@@ -1,7 +1,9 @@
+pub mod api;
 pub mod application;
 pub mod colortheme;
-pub mod window;
 pub mod command;
+pub mod innerpipe;
+pub mod window;
 
 use std::io;
 
@@ -10,17 +12,19 @@ use toml::map::Map;
 
 pub type Config = Map<String, toml::Value>;
 
-pub fn iterate_config<'a, 'b: 'a, F>(config: &'b Config, f: &F) -> Option<(String, toml::Value)>
-where
-    F: Fn(&'a str, &'b toml::Value) -> bool,
-{
+pub fn iterate_config<'a, 'b: 'a>(
+    config: &'b Config,
+    cmd: &'a str,
+) -> Option<(String, toml::Value, bool)> {
     for (name, value) in config {
         if let toml::Value::Table(map) = value {
-            if let Some(p) = iterate_config(map, f) {
+            if let Some(p) = iterate_config(map, cmd) {
                 return Some(p);
             }
-        } else if f(name, value) {
-            return Some((name.clone(), value.clone()));
+        } else if cmd == value.as_str().unwrap() {
+            return Some((name.clone(), value.clone(), true));
+        } else if value.as_str().unwrap().starts_with(cmd) {
+            return Some((name.clone(), value.clone(), false));
         }
     }
     None

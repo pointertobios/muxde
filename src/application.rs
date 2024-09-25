@@ -1,14 +1,13 @@
 use std::{
     collections::HashMap,
     io::{self, stdout, Stdout, Write},
+    sync::mpsc,
     thread,
     time::Duration,
 };
 
 use crossterm::{
-    cursor,
-    event::{self, KeyEvent, KeyModifiers},
-    queue,
+    cursor, event, queue,
     style::{self, Color},
     terminal::{self, disable_raw_mode, enable_raw_mode, ClearType},
 };
@@ -16,7 +15,7 @@ use crossterm::{
 use unicode_width::UnicodeWidthStr;
 
 use crate::{
-    colortheme::ColorTheme, command::CommandProcessor, iterate_config, window::Window, Config,
+    colortheme::ColorTheme, command::CommandProcessor, innerpipe::PipeObj, window::Window, Config,
 };
 
 pub struct Application {
@@ -24,7 +23,7 @@ pub struct Application {
     colortheme: ColorTheme,
     stdout: Stdout,
     size: (u16, u16),
-    windows: HashMap<usize, Window>,
+    windows: HashMap<usize, Box<dyn Window>>,
     cmdprocessor: CommandProcessor,
 }
 
@@ -79,7 +78,15 @@ impl Application {
 
     fn command_process(&mut self) -> bool {
         if let toml::Value::Table(map) = &self.config.get("command").unwrap() {
-            if self.cmdprocessor.process(map) {
+            let (tx, rx) = mpsc::channel();
+            if self.cmdprocessor.process(map, tx) {
+                while let Ok(pipeobj) = rx.recv() {
+                    match pipeobj {
+                        PipeObj::NewWindow(win) => {
+                            self.windows.insert(win.get_id(), win);
+                        }
+                    }
+                }
                 true
             } else {
                 false
@@ -98,7 +105,15 @@ impl Application {
             }
         }
         let x = UnicodeWidthStr::width(show.as_str()) as u16;
-        let mut prompt = String::new();
+	let mut suggestion = String::new();
+	for c in self.cmdprocessor.get_suggestion().chars() {
+	    suggestion.push(c);
+	    if UnicodeWidthStr::width(suggestion.as_str()) as u16 >= self.size.0 - 1 - x {
+		break;
+	    }
+	}
+	let x = x + UnicodeWidthStr::width(suggestion.as_str()) as u16;
+        let mut prompt = String::from(if x == 0 {""}else{" - "});
         for c in self.cmdprocessor.get_prompt().chars() {
             prompt.push(c);
             if UnicodeWidthStr::width(prompt.as_str()) as u16 >= self.size.0 - 1 - x {
@@ -116,8 +131,9 @@ impl Application {
                 self.colortheme.cmdbar_cmdexist
             }),
             style::Print(show),
-            cursor::SavePosition,
-            style::SetForegroundColor(self.colortheme.cmdbar_prompt),
+	    cursor::SavePosition,
+	    style::SetForegroundColor(self.colortheme.cmdbar_prompt),
+	    style::Print(suggestion),
             style::Print(prompt),
             style::Print(" ".repeat((self.size.0 - x) as usize)),
             cursor::RestorePosition,
