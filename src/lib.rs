@@ -1,6 +1,7 @@
 pub mod application;
 pub mod colortheme;
 pub mod window;
+pub mod command;
 
 use std::io;
 

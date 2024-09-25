@@ -1,7 +1,10 @@
 [colortheme]
-background = [26, 26, 28]
-command_bar = [20, 28, 20]
+background = [0x26, 0x26, 0x28]
+command-bar = [0x20, 0x28, 0x20]
+cmdbar-prompt = [0x40, 0x40, 0x40]
+cmdbar-cmdexist = [0x40, 0xff, 0x40]
+cmdbar-cmdunexist = [0xff, 0x40, 0x40]
 
 [command]
-new_window = "n"
+new-window = "n"
 quit = "q"
