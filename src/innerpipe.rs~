@@ -1,3 +1,0 @@
-pub enum PipeObj {
-    NewWindow(Box<dyn Window>),
-}
