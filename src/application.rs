@@ -79,18 +79,19 @@ impl Application {
     fn command_process(&mut self) -> bool {
         if let toml::Value::Table(map) = &self.config.get("command").unwrap() {
             let (tx, rx) = mpsc::channel();
-            if self.cmdprocessor.process(map, tx) {
-                while let Ok(pipeobj) = rx.recv() {
-                    match pipeobj {
-                        PipeObj::NewWindow(win) => {
-                            self.windows.insert(win.get_id(), win);
-                        }
-                    }
-                }
+            let res = if self.cmdprocessor.process(map, self.size, tx) {
                 true
             } else {
                 false
+            };
+            while let Ok(pipeobj) = rx.recv() {
+                match pipeobj {
+                    PipeObj::NewWindow(win) => {
+                        self.windows.insert(win.get_id(), win);
+                    }
+                }
             }
+	    res
         } else {
             false
         }
@@ -138,6 +139,13 @@ impl Application {
             style::Print(" ".repeat((self.size.0 - x) as usize)),
             cursor::RestorePosition,
         )?;
+        for (_, win) in self.windows.iter_mut() {
+            win.render(
+                &mut self.stdout,
+                (self.size.0, self.size.1 - 1),
+                &self.colortheme,
+            )?;
+        }
         self.stdout.flush()?;
         Ok(())
     }

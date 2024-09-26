@@ -7,6 +7,7 @@ pub struct ColorTheme {
     pub cmdbar_prompt: Color,
     pub cmdbar_cmdexist: Color,
     pub cmdbar_cmdunexist: Color,
+    pub editor_title: Color,
 }
 
 impl From<&Table> for ColorTheme {
@@ -27,12 +28,14 @@ impl From<&Table> for ColorTheme {
         let cmdbar_prompt = f("cmdbar-prompt");
         let cmdbar_cmdexist = f("cmdbar-cmdexist");
         let cmdbar_cmdunexist = f("cmdbar-cmdunexist");
+        let editor_title = f("editor-title");
         Self {
             background,
             command_bar,
             cmdbar_prompt,
             cmdbar_cmdexist,
             cmdbar_cmdunexist,
+            editor_title,
         }
     }
 }

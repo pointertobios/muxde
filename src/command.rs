@@ -45,7 +45,12 @@ impl CommandProcessor {
         self.command_mode
     }
 
-    pub fn process(&mut self, map: &Config, sender: Sender<PipeObj>) -> bool {
+    pub fn process(
+        &mut self,
+        map: &Config,
+        screen_size: (u16, u16),
+        sender: Sender<PipeObj>,
+    ) -> bool {
         if let Some((name, cmd, full)) = iterate_config(map, &self.command) {
             self.cmdbar_prompt = format!("{}", name);
             if !full {
@@ -68,7 +73,7 @@ impl CommandProcessor {
                 match name.as_str() {
                     "quit" => return true,
                     "new-window" => {
-                        let win = api::new_window();
+                        let win = api::new_window(screen_size);
                         sender.send(PipeObj::NewWindow(win)).unwrap();
                     }
                     "abcd" => (),
