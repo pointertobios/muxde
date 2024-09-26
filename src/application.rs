@@ -105,15 +105,15 @@ impl Application {
             }
         }
         let x = UnicodeWidthStr::width(show.as_str()) as u16;
-	let mut suggestion = String::new();
-	for c in self.cmdprocessor.get_suggestion().chars() {
-	    suggestion.push(c);
-	    if UnicodeWidthStr::width(suggestion.as_str()) as u16 >= self.size.0 - 1 - x {
-		break;
-	    }
-	}
-	let x = x + UnicodeWidthStr::width(suggestion.as_str()) as u16;
-        let mut prompt = String::from(if x == 0 {""}else{" - "});
+        let mut suggestion = String::new();
+        for c in self.cmdprocessor.get_suggestion().chars() {
+            suggestion.push(c);
+            if UnicodeWidthStr::width(suggestion.as_str()) as u16 >= self.size.0 - 1 - x {
+                break;
+            }
+        }
+        let x = x + UnicodeWidthStr::width(suggestion.as_str()) as u16;
+        let mut prompt = String::from(if x == 0 { "" } else { " - " });
         for c in self.cmdprocessor.get_prompt().chars() {
             prompt.push(c);
             if UnicodeWidthStr::width(prompt.as_str()) as u16 >= self.size.0 - 1 - x {
@@ -131,9 +131,9 @@ impl Application {
                 self.colortheme.cmdbar_cmdexist
             }),
             style::Print(show),
-	    cursor::SavePosition,
-	    style::SetForegroundColor(self.colortheme.cmdbar_prompt),
-	    style::Print(suggestion),
+            cursor::SavePosition,
+            style::SetForegroundColor(self.colortheme.cmdbar_prompt),
+            style::Print(suggestion),
             style::Print(prompt),
             style::Print(" ".repeat((self.size.0 - x) as usize)),
             cursor::RestorePosition,

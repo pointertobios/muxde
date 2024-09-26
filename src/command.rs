@@ -34,7 +34,7 @@ impl CommandProcessor {
     }
 
     pub fn get_suggestion(&self) -> &String {
-	&self.cmdbar_suggestion
+        &self.cmdbar_suggestion
     }
 
     pub fn unknown(&self) -> bool {
@@ -53,17 +53,18 @@ impl CommandProcessor {
                 for _ in self.command.chars() {
                     s.remove(0);
                 }
-		if self.command.is_empty() {
-		    self.cmdbar_suggestion.clear();
-		} else {
+                if self.command.is_empty() {
+                    self.cmdbar_suggestion.clear();
+                    self.cmdbar_prompt.clear();
+                } else {
                     self.cmdbar_suggestion = s;
-		}
+                }
             } else {
-		self.cmdbar_suggestion.clear();
-	    }
-	    self.unknown_cmd = false;
-	    if full {
-		self.command.clear();
+                self.cmdbar_suggestion.clear();
+            }
+            self.unknown_cmd = false;
+            if full {
+                self.command.clear();
                 match name.as_str() {
                     "quit" => return true,
                     "new-window" => {
@@ -77,7 +78,7 @@ impl CommandProcessor {
             }
         } else if !self.cmdbar_show.is_empty() {
             self.cmdbar_prompt = String::from("Unknown command");
-	    self.cmdbar_suggestion.clear();
+            self.cmdbar_suggestion.clear();
             self.unknown_cmd = true;
         } else {
             self.cmdbar_prompt.clear();
