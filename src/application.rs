@@ -7,7 +7,9 @@ use std::{
 };
 
 use crossterm::{
-    cursor, event, queue,
+    cursor,
+    event::{self, KeyEvent, KeyModifiers},
+    queue,
     style::{self, Color},
     terminal::{self, disable_raw_mode, enable_raw_mode, ClearType},
 };
@@ -56,7 +58,10 @@ impl Application {
                     event::Event::FocusGained => queue!(self.stdout, cursor::Show)?,
                     event::Event::FocusLost => queue!(self.stdout, cursor::Hide)?,
                     event::Event::Key(key_event) => {
-                        if self.cmdprocessor.is_command_mode() {
+                        let KeyEvent { modifiers, .. } = key_event.clone();
+                        if self.cmdprocessor.is_command_mode()
+                            || modifiers.contains(KeyModifiers::CONTROL)
+                        {
                             self.cmdprocessor.key_event(key_event);
                         }
                     }
@@ -91,7 +96,7 @@ impl Application {
                     }
                 }
             }
-	    res
+            res
         } else {
             false
         }
@@ -105,6 +110,7 @@ impl Application {
                 break;
             }
         }
+        let show = show.trim().to_string();
         let x = UnicodeWidthStr::width(show.as_str()) as u16;
         let mut suggestion = String::new();
         for c in self.cmdprocessor.get_suggestion().chars() {
@@ -114,7 +120,11 @@ impl Application {
             }
         }
         let x = x + UnicodeWidthStr::width(suggestion.as_str()) as u16;
-        let mut prompt = String::from(if x == 0 { "" } else { " - " });
+        let mut prompt = String::from(if self.cmdprocessor.get_prompt().is_empty() {
+            ""
+        } else {
+            " - "
+        });
         for c in self.cmdprocessor.get_prompt().chars() {
             prompt.push(c);
             if UnicodeWidthStr::width(prompt.as_str()) as u16 >= self.size.0 - 1 - x {

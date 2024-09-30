@@ -42,7 +42,7 @@ impl CommandProcessor {
     }
 
     pub fn is_command_mode(&self) -> bool {
-        self.command_mode
+        self.command_mode || self.command.starts_with("C-") || self.command.starts_with("A-")
     }
 
     pub fn process(
@@ -51,7 +51,7 @@ impl CommandProcessor {
         screen_size: (u16, u16),
         sender: Sender<PipeObj>,
     ) -> bool {
-        if let Some((name, cmd, full)) = iterate_config(map, &self.command) {
+        if let Some((name, cmd, full)) = iterate_config(map, &self.command.trim()) {
             self.cmdbar_prompt = format!("{}", name);
             if !full {
                 let mut s = cmd.as_str().unwrap().to_string();
@@ -75,9 +75,14 @@ impl CommandProcessor {
                     "new-window" => {
                         let win = api::new_window(screen_size);
                         sender.send(PipeObj::NewWindow(win)).unwrap();
+                        self.command_mode = false;
                     }
-                    "abcd" => (),
-                    "dfas" => (),
+                    "edit-mode" => {
+                        self.command_mode = false;
+                    }
+                    "command-mode" => {
+                        self.command_mode = true;
+                    }
                     _ => (),
                 }
             }
@@ -122,7 +127,10 @@ impl CommandProcessor {
             event::KeyCode::Insert => (),
             event::KeyCode::F(_) => (),
             event::KeyCode::Char(c) => {
-                if self.command_mode {
+                if self.command_mode
+                    || modifiers.contains(KeyModifiers::CONTROL)
+                    || modifiers.contains(KeyModifiers::ALT)
+                {
                     let mut b = true;
                     if modifiers.contains(KeyModifiers::CONTROL) {
                         self.command += "C-";

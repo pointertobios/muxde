@@ -11,3 +11,5 @@ editor-title = [0x30, 0x30, 0x42]
 [command]
 new-window = "n"
 quit = "q"
+edit-mode = "e"
+command-mode = "C-c"

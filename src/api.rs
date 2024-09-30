@@ -1,6 +1,6 @@
 use once_cell::sync::OnceCell;
 
-use crate::{window::Window, window::editor::Editor};
+use crate::{window::editor::Editor, window::Window};
 
 pub fn new_window(screen_size: (u16, u16)) -> Box<dyn Window> {
     static mut ID_COUNT: OnceCell<usize> = OnceCell::new();
