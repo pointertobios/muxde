@@ -1,10 +1,10 @@
 pub mod api;
 pub mod application;
+pub mod buffer;
 pub mod colortheme;
 pub mod command;
 pub mod innerpipe;
 pub mod window;
-pub mod buffer;
 
 use std::io;
 

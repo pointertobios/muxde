@@ -1,9 +1,12 @@
-use std::{collections::HashMap, io::{self, Stdout}};
+use std::{
+    collections::HashMap,
+    io::{self, Stdout},
+};
 
 use crossterm::{cursor, queue, style};
 use unicode_width::UnicodeWidthStr;
 
-use crate::{colortheme::ColorTheme, window::Window, buffer::Buffer};
+use crate::{buffer::Buffer, colortheme::ColorTheme, window::Window};
 
 pub struct Editor {
     id: usize,
@@ -20,7 +23,7 @@ impl Editor {
             name: String::new(),
             pos: (0, 0),
             size: screen_size,
-	    buffers: HashMap::new(),
+            buffers: HashMap::new(),
         }
     }
 }
