@@ -1,6 +1,6 @@
 use std::{
-    collections::HashMap,
     io::{self, Stdout},
+    vec::Vec,
 };
 
 use crossterm::{cursor, queue, style};
@@ -10,21 +10,21 @@ use crate::{buffer::Buffer, colortheme::ColorTheme, window::Window};
 
 pub struct Editor {
     id: usize,
-    name: String,
     pos: (u16, u16),
     size: (u16, u16),
-    buffers: HashMap<usize, Buffer>,
+    buffers: Vec<Buffer>,
 }
 
 impl Editor {
     pub fn new(id: usize, screen_size: (u16, u16)) -> Self {
-        Editor {
+        let mut res = Editor {
             id,
-            name: String::new(),
             pos: (0, 0),
             size: screen_size,
-            buffers: HashMap::new(),
-        }
+            buffers: Vec::new(),
+        };
+        res.buffers.push(Buffer::new());
+        res
     }
 }
 
@@ -37,12 +37,16 @@ impl Window for Editor {
         self.size
     }
 
-    fn get_name(&self) -> &str {
-        &self.name
-    }
-
     fn get_id(&self) -> usize {
         self.id
+    }
+
+    fn set_pos(&mut self, pos: (u16, u16)) {
+        self.pos = pos;
+    }
+
+    fn set_size(&mut self, size: (u16, u16)) {
+        self.size = size;
     }
 
     fn render(
@@ -51,14 +55,15 @@ impl Window for Editor {
         screen_size: (u16, u16),
         colortheme: &ColorTheme,
     ) -> io::Result<()> {
-        let x = UnicodeWidthStr::width(self.name.as_str()) as u16;
+        
+        //let x = UnicodeWidthStr::width(self.name.as_str()) as u16;
         queue!(
             stdout,
             cursor::SavePosition,
             style::SetBackgroundColor(colortheme.editor_title),
             cursor::MoveTo(self.pos.0, self.pos.1),
-            style::Print(self.name.clone()),
-            style::Print(" ".repeat((screen_size.0 - x) as usize) + "\n\r"),
+            style::Print(""),
+            style::Print(" ".repeat((screen_size.0) as usize) + "\n\r"),
             style::SetBackgroundColor(colortheme.background),
             cursor::RestorePosition,
         )?;
